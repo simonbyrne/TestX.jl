@@ -28,7 +28,7 @@ This package tries to address the following issues with [Test.jl](https://docs.j
    - at its simplest, it can just count the number of passes, fails, etc.
    - propagates failing tests to the global logger
 3. test output can be controlled by use of custom log handlers
-   - e.g. junit export, GitHub annotations, markdown summary
+   - e.g. junit export, GitHub annotations, markdown summary, https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-warning-message
 4. A drop-in replacement for Test.jl stdlib
 5. Extensible to other use cases (e.g. JET.jl, Aqua.jl)
 
