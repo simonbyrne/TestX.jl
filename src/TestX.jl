@@ -83,7 +83,7 @@ loglevel(::TestBroken) = Base.CoreLogging.Warn
 abstract type TestSkip <: TestStatus end
 loglevel(::TestSkip) = Base.CoreLogging.Info
 
-include("test.jl")
+include("test_assert.jl")
 include("test_throws.jl")
 include("testset.jl")
 

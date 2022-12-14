@@ -3,6 +3,7 @@
 using TestX
 
 @testset begin
+@testset begin
 
     @test 1+1 == 2
     @test 1+1 == 3
@@ -14,4 +15,5 @@ using TestX
     @test_throws BoundsError div(1,0)
     @test_throws DivideError div(1,2)
 
+end
 end
