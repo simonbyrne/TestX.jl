@@ -43,13 +43,28 @@ function shadow_expr!(expr)
     end
 end
 
+abstract type AbstractEvaluated
 
-function fail_info(args...)
+# https://github.com/ssfrr/DeepDiffs.jl
+struct EvaluatedFunction <: AbstractEvaluated
+    f
+    args
+    kwargs
+end
+
+struct EvaluatedNot <: AbstractEvaluated
+    evalexpr
+end
+
+
+function evaluated(args...)
     Expr(:call,args...)
 end
 function not_fail_info(args...)
     Expr(:call,:!,Expr(:call,args...))
 end
+
+# idea: should return an Evaluate object which can be printed differently depending on
 
 macro test(expr)
     # we need to capture these here, rather than use the ones in the logger, so
