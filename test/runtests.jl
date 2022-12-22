@@ -7,6 +7,8 @@ using TestX
 
     @test 1+1 == 2
     @test 1+1 == 3
+    @test "aa"*"c" == "abc"
+    @test "aa"*"c" == missing
     @test 1+1
     @test div(1, 0) == 1
 

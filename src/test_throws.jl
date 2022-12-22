@@ -21,17 +21,17 @@ macro test_throws(expected, expr)
             result = $(esc(expr))
             # no exception thrown
             status = ThrowsNoException()
-            Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group))  _file=$_file _line=$_line _module=$_module expression expected result
+            Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group))  _file=$_file _line=$_line _module=$_module expression expected result
         catch ex
             if match_exception($expected, ex)
                 # correct exception
                 status = ThrowsPass()
-                Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression expected exception=ex
+                Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module expression expected exception=ex
             else
                 # wrong exception
                 status = ThrowsWrongException()
                 bt = catch_backtrace()
-                Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression expected exception=(ex,bt)
+                Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module expression expected exception=(ex,bt)
             end
         end
     end

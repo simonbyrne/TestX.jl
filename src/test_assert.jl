@@ -1,3 +1,5 @@
+using DeepDiffs
+
 # @test
 struct AssertPass <: TestPass end
 Base.show(io::IO, ::AssertPass) = print(io, "@test passed")
@@ -12,91 +14,117 @@ struct AssertThrown <: TestError end
 Base.show(io::IO, ::AssertThrown) = print(io, "@test threw exception")
 
 
+"""
+    evaluation_expr!(expr)
 
-
-function shadow_expr!(expr)
+Rewrite `expr` so that we can extract the intermediate evaluated quantities,
+returning an expression that evaluates to the intermediate "evaluation" object,
+or `nothing` if the evaluation cannot be determined.
+"""
+function evaluation_expr!(expr)
     if expr isa Expr && expr.head == :call && expr.args[1] == :!
         not_expr = expr.args[2]
         if not_expr isa Expr && not_expr.head == :call
-            info_expr = :(not_fail_info())
+            eval_expr = :($(@__MODULE__).negated_evaluation())
             for i in eachindex(not_expr.args)
                 argsym = gensym("arg")
                 not_expr.args[i] = Expr(:(=), argsym, not_expr.args[i])
-                push!(info_expr.args, esc(argsym))
+                push!(eval_expr.args, esc(argsym))
             end
-            return info_expr
+            return eval_expr
         else
             return nothing
         end
     else
         if expr isa Expr && expr.head == :call
-            info_expr = :(fail_info())
+            eval_expr = :($(@__MODULE__).evaluation())
             for i in eachindex(expr.args)
                 argsym = gensym("arg")
                 expr.args[i] = Expr(:(=), argsym, expr.args[i])
-                push!(info_expr.args, esc(argsym))
+                push!(eval_expr.args, esc(argsym))
             end
-            return info_expr
+            return eval_expr
         else
             return nothing
         end
     end
 end
 
-abstract type AbstractEvaluated
+abstract type AbstractAssertEvaluation end
+abstract type AbstractNegatedAssertEvaluation  <: AbstractAssertEvaluation end
+
+# FunctionEvaluation => this is the default fallback
+# NegatedFunctionEvaluation
+
+evaluation(f, args...; kwargs...) =
+    FunctionEvaluation(f, args, kwargs)
 
 # https://github.com/ssfrr/DeepDiffs.jl
-struct EvaluatedFunction <: AbstractEvaluated
+struct FunctionEvaluation <: AbstractAssertEvaluation
     f
     args
     kwargs
 end
 
-struct EvaluatedNot <: AbstractEvaluated
-    evalexpr
-end
+evaluation(::typeof(==), left, right) =
+    EqualityEvaluation(left, right)
 
-
-function evaluated(args...)
-    Expr(:call,args...)
+struct EqualityEvaluation <: AbstractAssertEvaluation
+    left
+    right
 end
-function not_fail_info(args...)
-    Expr(:call,:!,Expr(:call,args...))
+function Base.show(io::IO, ev::EqualityEvaluation)
+    show(io, deepdiff(ev.left, ev.right))
 end
-
 # idea: should return an Evaluate object which can be printed differently depending on
 
+"""
+    @test expr
+
+
+"""
 macro test(expr)
     # we need to capture these here, rather than use the ones in the logger, so
     # that we get the line number of the @test, not the line number in this file
     _module, _file, _line = Base.CoreLogging.@_sourceinfo()
+    idx_counter = Threads.Atomic{Int}(1)
     orig_expr = deepcopy(expr)
-    info_expr = shadow_expr!(expr)
+    eval_expr = evaluation_expr!(expr)
     quote
-        local status
+        local status, kw
         expression = $(QuoteNode(orig_expr))
+        _idx = Threads.atomic_add!($idx_counter, 1)
         try
             result = $(esc(expr))
             if result isa Bool
                 if result
                     # success
                     status = AssertPass()
-                    Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression
+                    kw = (;)
                 else
                     # fail
                     status = AssertFail()
-                    Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression evaluated=$info_expr
+                    evaluation=$eval_expr
+                    kw = (;
+                        evaluation,
+                    )
                 end
             else
                 # non Bool
                 status = AssertNonBool()
-                Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression result
+                evaluation=$eval_expr
+                kw = (;
+                    evaluation,
+                    result,
+                )
             end
         catch ex
             status = AssertThrown()
             bt = catch_backtrace()
-            level = loglevel(status)
-            Base.@logmsg loglevel(status) status _group=$(QuoteNode(_group)) _file=$_file _line=$_line _module=$_module expression exception=(ex,bt)
+            kw = (;
+                exception=(ex,bt),
+            )
         end
+        Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module _idx expression kw...
     end
 end
