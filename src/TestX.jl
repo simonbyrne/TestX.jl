@@ -2,7 +2,7 @@ module TestX
 
 import Logging
 
-export @test, @test_throws, @testset
+export @test, @test_throws, @test_logs, @testset
 
 
 const test_group = :test
@@ -88,6 +88,7 @@ loglevel(::TestSkip) = Logging.Info
 
 include("test_assert.jl")
 include("test_throws.jl")
+include("test_logs.jl")
 include("testset.jl")
 
 

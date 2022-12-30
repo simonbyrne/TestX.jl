@@ -75,7 +75,7 @@ macro testset(expr)
                 Logging.@logmsg loglevel(status) status _file=$_file _line=$_line _module=$_module exception=(ex,bt)
             end
         end
-        res = finish_testset(testsetlogger)
-        Logging.@logmsg res[1] res[2] _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module
+        (_level, _msg) = finish_testset(testsetlogger) # https://github.com/JuliaLang/julia/issues/41451
+        Logging.@logmsg _level _msg _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module
     end
 end

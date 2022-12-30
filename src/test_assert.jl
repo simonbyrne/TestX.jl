@@ -87,13 +87,11 @@ macro test(expr)
     # we need to capture these here, rather than use the ones in the logger, so
     # that we get the line number of the @test, not the line number in this file
     _module, _file, _line = Base.CoreLogging.@_sourceinfo()
-    idx_counter = Threads.Atomic{Int}(1)
     orig_expr = deepcopy(expr)
     eval_expr = evaluation_expr!(expr)
     quote
         local status, kw
         expression = $(QuoteNode(orig_expr))
-        _idx = Threads.atomic_add!($idx_counter, 1)
         try
             result = $(esc(expr))
             if result isa Bool
@@ -125,6 +123,6 @@ macro test(expr)
                 exception=(ex,bt),
             )
         end
-        Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module _idx expression kw...
+        Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module expression kw...
     end
 end
