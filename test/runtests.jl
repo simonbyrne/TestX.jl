@@ -2,6 +2,11 @@
 
 using TestX, Logging
 
+push!(LOAD_PATH, "@tests-logger-env") # access dependencies
+using GitHubActions, Logging
+global_logger(GitHubActionsLogger())
+
+
 @show Logging.global_logger()
 
 @test_logs (Logging.Info, TestX.AssertPass()) @test(true)
