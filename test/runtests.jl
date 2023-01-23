@@ -2,6 +2,8 @@
 
 using TestX, Logging
 
+@show Logging.global_logger()
+
 @test_logs (Logging.Info, TestX.AssertPass()) @test(true)
 @test_logs (Logging.Info, TestX.AssertPass()) @test(1==1)
 @test_logs (Logging.Error, TestX.AssertFail()) @test(false)
