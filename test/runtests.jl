@@ -2,7 +2,7 @@
 
 using TestX, Logging
 
-if haskey(ENV, "GITHUB_ACTIONS") == "__julia-actions_julia-runtest"
+if haskey(ENV, "GITHUB_ACTIONS")
     @show v"1.8pre" < VERSION < v"1.9.0-beta3"
     if v"1.8pre" < VERSION < v"1.9.0-beta3"
 
