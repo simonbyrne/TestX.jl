@@ -82,6 +82,7 @@ Other ideas:
  - Use custom test log handler
  - https://buttondown.email/hillelwayne/archive/i-am-disappointed-by-dynamic-typing/#fnref:paramspec
    - generate snapshot test cases
+     - See also https://github.com/ezyang/expecttest
    - insert breakpoints in failing tests
      - requires some notion of re-runnable tests / isolation?
 

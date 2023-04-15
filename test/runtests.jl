@@ -2,10 +2,16 @@
 
 using TestX, Logging
 
-push!(LOAD_PATH, "@tests-logger-env") # access dependencies
-using GitHubActions, Logging
-global_logger(GitHubActionsLogger())
-
+if haskey(ENV, "GITHUB_ACTION")
+    @show ENV["GITHUB_ACTION"]
+    
+    # the current julia-runtest action parses the stdout stream and looks for "Test Failed"
+    # https://github.com/julia-actions/julia-runtest/blob/ba451bf755774f8120f020dc5bb4a7e7bb7fc231/test_logger.jl#L91
+    # this is much simpler: we just use a different logger
+    push!(LOAD_PATH, "@tests-logger-env")
+    using GitHubActions, Logging
+    global_logger(GitHubActionsLogger())
+end
 
 @show Logging.global_logger()
 
