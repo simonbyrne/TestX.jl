@@ -96,3 +96,6 @@ Other ideas:
     - need some way to link them: we don't make the id field globally unique, as we use that to suppress multiple failures
     - either have a different identifier (global increment?)
     - task identifier (objectid)
+
+
+- https://github.com/julia-actions/julia-runtest/issues/76
