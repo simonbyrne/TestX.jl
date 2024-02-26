@@ -3,7 +3,6 @@
 using TestX, Logging
 
 if haskey(ENV, "GITHUB_ACTIONS")
-    @show v"1.8pre" < VERSION < v"1.9.0-beta3"
     if v"1.8pre" < VERSION < v"1.9.0-beta3"
 
         # the current julia-runtest action parses the stdout stream and looks for "Test Failed"

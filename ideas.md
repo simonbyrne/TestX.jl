@@ -1,5 +1,11 @@
 # TestX plan
 
+Test sets are dynamically scoped
+- `@testset` calls `@with(testset => val, ....)`
+
+
+
+
 https://github.com/JuliaLang/julia/issues/33065#issue-484850077
 
 Tests should use logging infrastructure

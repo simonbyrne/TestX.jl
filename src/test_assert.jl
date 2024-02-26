@@ -78,6 +78,17 @@ function Base.show(io::IO, ev::EqualityEvaluation)
 end
 # idea: should return an Evaluate object which can be printed differently depending on
 
+mutable struct AssertionTest
+    __module__
+    __source__
+    expression
+    status
+    evaluation
+    
+end
+
+
+
 """
     @test expr
 
@@ -86,22 +97,26 @@ end
 macro test(expr)
     # we need to capture these here, rather than use the ones in the logger, so
     # that we get the line number of the @test, not the line number in this file
-    _module, _file, _line = Base.CoreLogging.@_sourceinfo()
     orig_expr = deepcopy(expr)
     eval_expr = evaluation_expr!(expr)
     quote
+        testset = current_test_handler()
+        test = AssertionTest(
+            $__module__,
+            $__source__,
+            expression=$(QuoteNode(orig_expr)),
+        )
+        test_start(testset, test)
         local status, kw
         expression = $(QuoteNode(orig_expr))
         try
             result = $(esc(expr))
             if result isa Bool
                 if result
-                    # success
-                    status = AssertPass()
-                    kw = (;)
+                    test.status = :pass
                 else
                     # fail
-                    status = AssertFail()
+                    test.status = :fail
                     evaluation=$eval_expr
                     kw = (;
                         evaluation,
@@ -123,6 +138,8 @@ macro test(expr)
                 exception=(ex,bt),
             )
         end
-        Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module expression kw...
+        test_finish(testset, test)
+        #Base.@logmsg loglevel(status) status _group=$(QuoteNode(test_group)) _file=$_file _line=$_line _module=$_module expression kw...
+        
     end
 end

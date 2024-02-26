@@ -1,6 +1,42 @@
 module TestX
 
-import Logging
+import Logging, ScopedValues
+
+
+abstract type AbstractTestHandler end
+
+
+struct DefaultTestHandler <: AbstractTestHandler
+end
+const TEST_HANDLER = ScopedValue{AbstractTestHandler}(DefaultTestHandler())
+
+current_test_handler() = TEST_HANDLER[]
+
+
+
+function test_start(::DefaultTestHandler, test)
+    nothing
+end
+function test_start(::DefaultTestHandler, test)
+    nothing
+end
+
+
+
+
+const TESTSET_KEY = :__TestX_TestSet__
+
+
+function get_testset()
+    get(task_local_storage(), TESTSET_KEY, nothing)
+end
+
+
+
+
+
+
+
 
 export @test, @test_throws, @test_logs, @testset
 
