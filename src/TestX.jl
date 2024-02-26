@@ -1,11 +1,48 @@
 module TestX
 
-import Logging
-
-export @test, @test_throws, @testset
+import Logging, ScopedValues
 
 
-const _group = :test
+abstract type AbstractTestHandler end
+
+
+struct DefaultTestHandler <: AbstractTestHandler
+end
+const TEST_HANDLER = ScopedValue{AbstractTestHandler}(DefaultTestHandler())
+
+current_test_handler() = TEST_HANDLER[]
+
+
+
+function test_start(::DefaultTestHandler, test)
+    nothing
+end
+function test_start(::DefaultTestHandler, test)
+    nothing
+end
+
+
+
+
+const TESTSET_KEY = :__TestX_TestSet__
+
+
+function get_testset()
+    get(task_local_storage(), TESTSET_KEY, nothing)
+end
+
+
+
+
+
+
+
+
+export @test, @test_throws, @test_logs, @testset
+
+
+const test_group = :test
+const test_group_seen = :test_seen
 
 # should we use a different logger than the global one?
 #  e.g. log to TestX.logger?
@@ -68,23 +105,26 @@ end
 # https://github.com/JuliaLang/julia/issues/33418
 
 abstract type TestStatus end
+loglevel(::TestStatus) = Logging.Info
+
 abstract type TestPass <: TestStatus end
-loglevel(::TestPass) = Base.CoreLogging.Info
+loglevel(::TestPass) = Logging.Info
 
 abstract type TestFail <: TestStatus end
-loglevel(::TestFail) = Base.CoreLogging.Error
+loglevel(::TestFail) = Logging.Error
 
 abstract type TestError <: TestStatus end
-loglevel(::TestError) = Base.CoreLogging.Error
+loglevel(::TestError) = Logging.Error
 
 abstract type TestBroken <: TestStatus end
-loglevel(::TestBroken) = Base.CoreLogging.Warn
+loglevel(::TestBroken) = Logging.Warn
 
 abstract type TestSkip <: TestStatus end
-loglevel(::TestSkip) = Base.CoreLogging.Info
+loglevel(::TestSkip) = Logging.Info
 
-include("test.jl")
+include("test_assert.jl")
 include("test_throws.jl")
+include("test_logs.jl")
 include("testset.jl")
 
 
